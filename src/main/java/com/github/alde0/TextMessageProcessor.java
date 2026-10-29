@@ -2,8 +2,10 @@ package com.github.alde0;
 
 import com.github.alde0.todocore.Task;
 import com.github.alde0.todocore.TaskService;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TextMessageProcessor {
@@ -12,21 +14,29 @@ public class TextMessageProcessor {
 
     private String currentAction;
     private String taskTitle;
-    private String taskDescription;
     private int taskId;
 
     public TextMessageProcessor(TaskService taskService) {
         this.taskService = taskService;
     }
 
-    public String process(Update update) {
-        if (update == null
-                || !update.hasMessage()
-                || !update.getMessage().hasText()) {
-            return null;
+    public SendMessage processText(String text, Long chatId) {
+        String response = processTextMessage(text);
+
+        SendMessage sendMessage = new SendMessage(
+                chatId.toString(),
+                response
+        );
+
+        return sendMessage;
+    }
+
+    private String processTextMessage(String text) {
+        if (text == null) {
+            return "The message cannot be empty.";
         }
 
-        String message = update.getMessage().getText().trim();
+        String message = text.trim();
 
         if (message.isEmpty()) {
             return "The message cannot be empty.";
@@ -52,7 +62,6 @@ public class TextMessageProcessor {
             }
 
             return processCommand(message);
-
         } catch (Exception e) {
             resetState();
             return "The operation failed. Please try again.";
@@ -85,7 +94,7 @@ public class TextMessageProcessor {
                 return "Enter the ID of the task you want to delete:";
 
             default:
-                return "Unknown command. Use /help to see the list of available commands.";
+                return "Unknown command. Use /help to see available commands.";
         }
     }
 
@@ -97,10 +106,7 @@ public class TextMessageProcessor {
                 return "Enter the task description:";
 
             case "create_description":
-                taskDescription = message;
-
-                taskService.createTask(taskTitle, taskDescription);
-
+                taskService.createTask(taskTitle, message);
                 resetState();
                 return "Task created successfully.";
 
@@ -110,8 +116,7 @@ public class TextMessageProcessor {
                 return "Enter the new task title:";
 
             case "edit_name_value":
-                taskService.editTaskName(taskId, message);
-
+                taskService.changeTaskName(taskId, message);
                 resetState();
                 return "Task title updated successfully.";
 
@@ -121,24 +126,19 @@ public class TextMessageProcessor {
                 return "Enter the new task description:";
 
             case "edit_description_value":
-                taskService.editTaskDescription(taskId, message);
-
+                taskService.changeTaskDescription(taskId, message);
                 resetState();
                 return "Task description updated successfully.";
 
             case "edit_status_id":
                 taskId = parseTaskId(message);
-
-                taskService.editTaskStatus(taskId);
-
+                taskService.complete(taskId);
                 resetState();
                 return "Task status updated successfully.";
 
             case "delete_id":
                 taskId = parseTaskId(message);
-
                 taskService.deleteTask(taskId);
-
                 resetState();
                 return "Task deleted successfully.";
 
@@ -159,8 +159,7 @@ public class TextMessageProcessor {
             return id;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
-                    "The task ID must be a positive integer."
-            );
+                    "Task ID must be a positive integer.");
         }
     }
 
@@ -171,18 +170,11 @@ public class TextMessageProcessor {
             return "Your task list is empty.";
         }
 
-        StringBuilder result = new StringBuilder("Your tasks:\n\n");
-
+        List<String> formatedTasks = new ArrayList<>();
         for (Task task : tasks) {
-            result.append("ID: ").append(task.getId()).append('\n');
-            result.append("Title: ").append(task.getTitle()).append('\n');
-            result.append("Description: ").append(task.getDescription()).append('\n');
-            result.append("Status: ")
-                    .append(task.isCompleted() ? "Completed" : "Not completed")
-                    .append("\n\n");
+            formatedTasks.add(task.getTask());
         }
-
-        return result.toString();
+        return String.join("\n", formatedTasks);
     }
 
     private String getHelpMessage() {
@@ -193,7 +185,7 @@ public class TextMessageProcessor {
                 /listAllTasks — list all tasks
                 /editTaskName — edit a task title
                 /editTaskDescription — edit a task description
-                /editTaskStatus — change a task status
+                /editTaskStatus — mark a task as completed
                 /deleteTask — delete a task
                 /cancel — cancel the current action
                 /help — show this help message
@@ -203,7 +195,6 @@ public class TextMessageProcessor {
     private void resetState() {
         currentAction = null;
         taskTitle = null;
-        taskDescription = null;
         taskId = 0;
     }
 }
