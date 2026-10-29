@@ -74,35 +74,3 @@ public class TaskService implements AutoCloseable {
         taskRepository.close();
     }
 }
-/*package com.github.alde0.todocore;
-
-import java.util.List;
-
-public class TaskService {
-    private final TaskRepository taskRepository = new TaskRepository();
-    public void initService() {
-        try {
-            taskRepository.initDb();
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    public void createTask(String taskName, String taskDescription) {
-        taskRepository.insert(taskName, taskDescription);
-    }
-    public List<Task> listAllTasks() {
-        return taskRepository.selectAll();
-    }
-    public void changeTaskName(int id, String newTaskName) {
-        taskRepository.updateTitle(id, newTaskName);
-    }
-    public void changeTaskDescription(int id, String newTaskDescription) {
-        taskRepository.updateDescription(id, newTaskDescription);
-    }
-    public void complete(int id) {
-        taskRepository.complete(id);
-    }
-    public void deleteTask(int id) {
-        taskRepository.delete(id);
-    }
-}*/

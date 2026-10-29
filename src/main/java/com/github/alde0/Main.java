@@ -37,25 +37,3 @@ public class Main {
         }
     }
 }
-/*package com.github.alde0;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
-
-public class Main {
-    static void main() {
-        String BOT_TOKEN = System.getenv("BOT_TOKEN");
-        Logger log = LoggerFactory.getLogger(Main.class);
-
-        try (TelegramBotsLongPollingApplication telegramBotsLongPollingApplication = new TelegramBotsLongPollingApplication()) {
-            telegramBotsLongPollingApplication.registerBot(BOT_TOKEN, new TelegramBot(BOT_TOKEN));
-
-            log.info("Bot created");
-            Thread.currentThread().join();
-        } catch (Exception e) {
-            log.error("Invalid bot token");
-            System.exit(1);
-        }
-    }
-}*/
